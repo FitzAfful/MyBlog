@@ -9,6 +9,9 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     try routes(router)
     services.register(router, as: Router.self)
 
+    let serverConfigure = NIOServerConfig.default(hostname: "127.0.0.1", port: 9090)
+    services.register(serverConfigure)
+
     // Register middleware
     var middlewares = MiddlewareConfig() // Create _empty_ middleware config
     middlewares.use(FileMiddleware.self) // Serves files from `Public/` directory
@@ -16,17 +19,20 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     services.register(middlewares)
 
     try services.register(FluentMySQLProvider())  // changed
+    var databases = DatabasesConfig()
     let mysqlConfig = MySQLDatabaseConfig(
       hostname: "127.0.0.1",
       port: 3306,
       username: "root",
       password: "root",
-      database: "blog_db"
+      database: "myblog_db",
+      transport: MySQLTransportConfig.unverifiedTLS
     )
-    services.register(mysqlConfig)
+    databases.add(database: MySQLDatabase(config: mysqlConfig), as: .mysql)
+    services.register(databases)
 
     // Configure migrations
     var migrations = MigrationConfig()
-    migrations.add(model: Todo.self, database: .mysql)
+    migrations.add(model: User.self, database: .mysql)
     services.register(migrations)
 }

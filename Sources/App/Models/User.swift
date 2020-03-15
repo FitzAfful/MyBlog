@@ -2,9 +2,9 @@ import FluentMySQL
 import Vapor
 
 /// A single entry of a Todo list.
-final class User: MySQLModel {
+final class User: Content {
 
-    var id: Int?
+    var id: UUID?
     var firstName: String
     var lastName: String
     var email: String
@@ -13,8 +13,7 @@ final class User: MySQLModel {
     var lastLogin: String
 
 
-    init(id: Int? = nil, firstName: String, lastName: String, email: String, passwordHash: String, registeredAt: String, lastLogin: String) {
-        self.id = id
+    init(firstName: String, lastName: String, email: String, passwordHash: String, registeredAt: String, lastLogin: String) {
         self.firstName = firstName
         self.lastName = lastName
         self.email =  email
@@ -24,6 +23,12 @@ final class User: MySQLModel {
     }
 }
 
+extension User {
+    var posts: Children<User, Post> {
+        return children(\.userId)
+    }
+}
+
+extension User: MySQLUUIDModel {}
 extension User: Migration { }
-extension User: Content { }
 extension User: Parameter { }
