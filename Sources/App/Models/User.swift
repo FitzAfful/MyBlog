@@ -21,7 +21,36 @@ final class User: Content {
         self.registeredAt = registeredAt
         self.lastLogin = lastLogin
     }
+
+    final class Public: Codable {
+        var id: UUID?
+        var firstName: String
+        var lastName: String
+
+        init(id: UUID?, firstName: String, lastName: String) {
+            self.id = id
+            self.firstName = firstName
+            self.lastName = lastName
+        }
+    }
 }
+
+extension User {
+    func toPublic() -> User.Public {
+        return User.Public(id: id, firstName: firstName, lastName: lastName)
+    }
+}
+
+extension Future where T: User {
+    func toPublic() -> Future<User.Public> {
+        return map(to: User.Public.self) { (user) in
+            return user.toPublic()
+        }
+    }
+}
+
+
+extension User.Public: Content {}
 
 extension User {
     var posts: Children<User, Post> {

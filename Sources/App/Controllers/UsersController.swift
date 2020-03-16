@@ -1,4 +1,5 @@
 import Vapor
+import Crypto
 
 /// Controls basic CRUD operations on `User`s.
 final class UsersController: RouteCollection {
@@ -29,16 +30,19 @@ final class UsersController: RouteCollection {
       usersRoute.get(User.parameter, "posts", use: getPostsHandler)
     }
 
-    func createHandler(_ req: Request, user: User) throws -> Future<User> {
-      return user.save(on: req)
+    func createHandler(_ req: Request, user: User) throws -> Future<User.Public> {
+        return try req.content.decode(User.self).flatMap({ (user) in
+            user.passwordHash = try BCrypt.hash(user.passwordHash)
+            return user.save(on: req).toPublic()
+        })
     }
 
-    func getAllHandler(_ req: Request) throws -> Future<[User]> {
-      return User.query(on: req).all()
+    func getAllHandler(_ req: Request) throws -> Future<[User.Public]> {
+        return User.query(on: req).decode(data: User.Public.self).all()
     }
 
-    func getHandler(_ req: Request) throws -> Future<User> {
-      return try req.parameters.next(User.self)
+    func getHandler(_ req: Request) throws -> Future<User.Public> {
+        return try req.parameters.next(User.self).toPublic()
     }
 
     func getPostsHandler(_ req: Request) throws -> Future<[Post]> {

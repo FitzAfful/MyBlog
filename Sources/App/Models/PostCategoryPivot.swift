@@ -19,6 +19,7 @@ final class PostCategoryPivot: MySQLUUIDPivot {
   }
 }
 
+
 extension PostCategoryPivot: ModifiablePivot {}
 
 extension PostCategoryPivot: Migration {
