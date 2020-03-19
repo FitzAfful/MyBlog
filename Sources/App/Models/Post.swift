@@ -45,7 +45,20 @@ extension Post {
     var user: Parent<Post, User> {
         return parent(\.userId)
     }
+
+    var categories: Siblings<Post, Category, PostCategoryPivot> {
+      return siblings()
+    }
 }
 
-extension Post: Migration { }
+extension Post: Migration {
+    static func prepare(on connection: MySQLConnection) -> Future<Void> {
+      return Database.create(self, on: connection) { builder in
+        try addProperties(to: builder)
+        builder.reference(from: \.userId, to: \User.id)
+      }
+    }
+}
+
 extension Post: Parameter { }
+extension Post: Content { }
